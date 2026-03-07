@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum SessionStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum TemplateType {
+  CONTAINER
+  COMPOSE
+}
+
+enum VolumeMode {
+  REMOTE_ONLY
+  SYNC_BIDIRECTIONAL
+}
+
+enum ConflictPolicy {
+  PREFER_LOCAL
+  PREFER_REMOTE
+  MANUAL
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  role         UserRole     @default(USER)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  sessions     Session[]
+  instances    UserInstance[]
+  forwards     PortForward[]
+  templates    CatalogTemplate[]
+  auditLogs    AuditLog[]
+}
+
+model Session {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id])
+  status       SessionStatus @default(OFFLINE)
+  agentVersion String
+  hostname     String
+  lastSeenAt   DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model CatalogTemplate {
+  id              String                     @id @default(cuid())
+  name            String
+  description     String?
+  type            TemplateType
+  image           String?
+  composeYaml     String?
+  createdByUserId String
+  createdBy       User                       @relation(fields: [createdByUserId], references: [id])
+  ports           CatalogTemplatePort[]
+  volumes         CatalogTemplateVolume[]
+  envVars         CatalogTemplateEnv[]
+  instances       UserInstance[]
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+}
+
+model CatalogTemplatePort {
+  id         String          @id @default(cuid())
+  templateId String
+  template   CatalogTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  serviceName String         @default("default")
+  name       String
+  port       Int
+  protocol   String          @default("tcp")
+  exposure   String          @default("FORWARDABLE")
+}
+
+model CatalogTemplateVolume {
+  id                    String          @id @default(cuid())
+  templateId            String
+  template              CatalogTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  serviceName           String          @default("default")
+  name                  String
+  mountPath             String
+  mode                  VolumeMode      @default(REMOTE_ONLY)
+  defaultConflictPolicy ConflictPolicy  @default(PREFER_REMOTE)
+}
+
+model CatalogTemplateEnv {
+  id         String          @id @default(cuid())
+  templateId String
+  template   CatalogTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  serviceName String         @default("default")
+  key        String
+  value      String
+}
+
+model UserInstance {
+  id          String                @id @default(cuid())
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id])
+  templateId  String
+  template    CatalogTemplate       @relation(fields: [templateId], references: [id])
+  name        String
+  runtimeId   String?
+  status      String                @default("PENDING")
+  ports       UserInstancePort[]
+  volumes     UserInstanceVolume[]
+  forwards    PortForward[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+}
+
+model UserInstancePort {
+  id         String       @id @default(cuid())
+  instanceId String
+  instance   UserInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  serviceName String      @default("default")
+  name       String
+  remoteHost String
+  remotePort Int
+  hostPort   Int
+}
+
+model UserInstanceVolume {
+  id             String         @id @default(cuid())
+  instanceId     String
+  instance       UserInstance   @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  serviceName    String         @default("default")
+  name           String
+  mountPath      String
+  serverPath     String
+  mode           VolumeMode
+  conflictPolicy ConflictPolicy
+  localPath      String?
+}
+
+model PortForward {
+  id         String   @id @default(cuid())
+  userId      String
+  user       User     @relation(fields: [userId], references: [id])
+  instanceId String?
+  instance   UserInstance? @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  sessionId  String?
+  localPort  Int
+  remoteHost String
+  remotePort Int
+  status     String   @default("REQUESTED")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actorUser   User?    @relation(fields: [actorUserId], references: [id])
+  action      String
+  targetType  String
+  targetId    String?
+  details     Json?
+  createdAt   DateTime @default(now())
+}
