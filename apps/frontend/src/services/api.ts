@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:4000/api" });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "/api" });
 
 type ApiEnvelope<T> = { data: T; meta?: Record<string, unknown>; error: null } | { data: null; error: { code: string; message: string; details?: unknown } };
 

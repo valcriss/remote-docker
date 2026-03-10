@@ -13,6 +13,8 @@ services:
       ORCHESTRATOR_MODE: standalone
     ports:
       - "4000:4000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
   postgres:
     image: postgres:16-alpine

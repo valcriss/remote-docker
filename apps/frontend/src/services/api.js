@@ -1,5 +1,5 @@
 import axios from "axios";
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:4000/api" });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "/api" });
 function unwrap(value) {
     if (value && "error" in value && value.error) {
         throw new Error(value.error.message);
