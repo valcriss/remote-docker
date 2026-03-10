@@ -55,6 +55,38 @@ cd apps/frontend
 npm run dev
 ```
 
+## Run with Docker (backend serves frontend)
+
+Build the image:
+
+```bash
+docker build -t remote-docker-app .
+```
+
+Run it (example with local PostgreSQL):
+
+```bash
+docker run --rm -p 4000:4000 -e DATABASE_URL="postgresql://remote_docker:remote_docker@host.docker.internal:5432/remote_docker" remote-docker-app
+```
+
+On startup, `entrypoint.sh` runs `prisma migrate deploy`, then starts the backend.
+
+## GitHub Actions
+
+- CI workflow: `.github/workflows/ci.yml`
+  - Runs lint, test and build for backend and frontend.
+- Release workflow: `.github/workflows/release.yml`
+  - Triggered on git tag push (`*`).
+  - Builds and pushes image to `ghcr.io/valcriss/remote-docker:<tag>`.
+
+## Production Compose
+
+Use `docker-compose.prod.yml` with the published image:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
 ## Run agent
 
 1. Edit `apps/remote-docker-agent/appsettings.json` and set `JwtToken`.

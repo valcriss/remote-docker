@@ -1,0 +1,33 @@
+services:
+  app:
+    image: ghcr.io/valcriss/remote-docker:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://remote_docker:remote_docker@postgres:5432/remote_docker
+      JWT_SECRET: change-me
+      ORCHESTRATOR_MODE: standalone
+    ports:
+      - "4000:4000"
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: remote_docker
+      POSTGRES_PASSWORD: remote_docker
+      POSTGRES_DB: remote_docker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remote_docker -d remote_docker"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres_data:
