@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../prisma.js";
 import { type AuthedRequest, requireAdmin, requireAuth } from "../middleware/auth.js";
@@ -168,7 +169,7 @@ catalogRouter.put("/templates/:id", requireAuth, requireAdmin, asyncHandler(asyn
     throw new AppError(400, "ERR_CATALOG_COMPOSE_REQUIRED", "Compose templates require composeYaml.");
   }
 
-  const updated = await prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     await tx.catalogTemplatePort.deleteMany({ where: { templateId: id } });
     await tx.catalogTemplateVolume.deleteMany({ where: { templateId: id } });
     await tx.catalogTemplateEnv.deleteMany({ where: { templateId: id } });

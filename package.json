@@ -11,9 +11,7 @@
     "build": "npm run build --workspaces",
     "dev": "concurrently \"npm run dev --workspace @remote-docker/backend\" \"npm run dev --workspace @remote-docker/frontend\"",
     "lint": "npm run lint --workspaces --if-present",
-    "test": "npm run test --workspaces --if-present",
-    "install:apps": "npm install --prefix apps/backend && npm install --prefix apps/frontend",
-    "postinstall": "npm run install:apps"
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

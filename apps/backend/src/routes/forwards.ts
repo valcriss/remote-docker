@@ -41,7 +41,7 @@ export function createForwardsRouter(hub: AgentHub): Router {
       throw new AppError(403, "ERR_INSTANCE_FORBIDDEN", "You cannot create a forward for this instance.");
     }
 
-    const targetPort = instance.ports.find((port) =>
+    const targetPort = instance.ports.find((port: { name: string; serviceName: string; hostPort: number; remoteHost: string }) =>
       port.name === parsed.data.portName &&
       (parsed.data.serviceName ? (port as { serviceName?: string | null }).serviceName === parsed.data.serviceName : true)
     );

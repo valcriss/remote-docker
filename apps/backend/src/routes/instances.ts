@@ -84,17 +84,17 @@ export function createInstancesRouter(orchestrator: ContainerOrchestrator, hub: 
       image: template.image,
       composeYaml: template.composeYaml,
       userId: req.auth!.sub,
-      ports: template.ports.map((port) => ({
+      ports: template.ports.map((port: { serviceName: string; name: string; port: number }) => ({
         serviceName: (port as { serviceName?: string | null }).serviceName ?? "default",
         name: port.name,
         containerPort: port.port
       })),
-      volumes: template.volumes.map((volume) => ({
+      volumes: template.volumes.map((volume: { serviceName: string; name: string; mountPath: string }) => ({
         serviceName: (volume as { serviceName?: string | null }).serviceName ?? "default",
         name: volume.name,
         mountPath: volume.mountPath
       })),
-      envVars: template.envVars.map((env) => ({
+      envVars: template.envVars.map((env: { serviceName: string; key: string; value: string }) => ({
         serviceName: (env as { serviceName?: string | null }).serviceName ?? "default",
         key: env.key,
         value: env.value
@@ -217,7 +217,7 @@ export function createInstancesRouter(orchestrator: ContainerOrchestrator, hub: 
     await prisma.$transaction([
       prisma.userInstance.update({ where: { id: instance.id }, data: { status: "STOPPED" } }),
       prisma.portForward.updateMany({
-        where: { id: { in: forwards.map((f) => f.id) } },
+        where: { id: { in: forwards.map((f: { id: string }) => f.id) } },
         data: { status: "STOPPED" }
       })
     ]);
